@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>地图应用</title>
+    <style>
+        html, body, #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+        #header {
+            height: 50px;
+            background-color: #f0f0f0;
+            text-align: center;
+            line-height: 50px;
+        }
+        #basemapGallery {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.28/"></script>
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/FeatureLayer",
+            "esri/widgets/ScaleBar",
+            "esri/widgets/Legend",
+            "esri/widgets/Search",
+            "esri/widgets/LayerList",
+            // 在 require 中添加以下模块
+            "esri/widgets/Measurement",
+        ], function(Map, MapView, FeatureLayer, ScaleBar, Legend, Search, LayerList,Measurement) {
+            // 初始化地图和视图
+            const map = new Map({
+                basemap: "streets"
+            });
+
+            //这个是地图视图，viewDiv
+            const view = new MapView({
+                container: "viewDiv",
+                map: map,
+                center: [-100, 34.027],
+                zoom: 3
+            });
+
+            // 添加专题图层
+            const featureLayer = new FeatureLayer({
+                url: "https://www.geosceneonline.cn/server/rest/services/Hosted/pyq的查看图层/FeatureServer/0"
+            });
+            map.add(featureLayer);
+
+            // 添加比例尺
+            const scaleBar = new ScaleBar({
+                view: view,
+                style: "ruler",
+                unit: "metric",
+                position: "bottom-left"
+            });
+            view.ui.add(scaleBar, "bottom-left");
+
+            // 添加图例
+            const legend = new Legend({
+                view: view,
+                layerInfos: [{
+                    layer: featureLayer,
+                    title: "专题图层图例"
+                }]
+            });
+            view.ui.add(legend, "bottom-right");
+
+            // 添加搜索框
+            const search = new Search({
+                view: view
+            });
+            view.ui.add(search, "top-right");
+
+            // 添加图层列表
+            const layerList = new LayerList({
+                view: view
+            });
+            view.ui.add(layerList, "top-right");
+
+            // 底图库切换功能
+            const basemapGallery = document.querySelector(".basemapGallery");
+            // const basemapGallery = document.createElement("div");
+            basemapGallery.id = "basemapGallery";
+            document.body.appendChild(basemapGallery);
+
+            const basemaps = ["streets", "satellite", "hybrid", "topo", "gray", "dark-gray", "oceans"];
+            basemaps.forEach(basemap => {
+                const button = document.createElement("button");
+                button.textContent = basemap;
+                button.style.margin = "5px";
+                button.onclick = () => {
+                    map.basemap = basemap;
+                };
+                basemapGallery.appendChild(button);
+            });
+
+            const measurementWidget = new Measurement({
+                view: view,
+                measurementMode: "auto",
+                unit: "meters",
+                activeTool: "area"
+            });
+ 
+            view.ui.add(measurementWidget, "top-right");
+        
+            measurementWidget.watch("measurement", (newValue) => {
+                if (newValue) {
+                console.log("测量结果:", newValue.value);
+                console.log("测量单位:", newValue.unit);
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="header">地图应用</div>
+    <div id="viewDiv"></div>
+    <div class="basemapGallery"></div>
+</body>
+</html>
